@@ -1,0 +1,57 @@
+file_name,schema_type
+data_sales\A Plus\APlus_ALS_Extract_01012021_31032023.csv,Schema_1
+data_sales\A Plus\converted_file_excel_to_csv\APlus Extract 2024 01 11.xlsx_Sheet2.csv,Schema_2
+data_sales\Aesthetic World\Aesthetic Extract 2023 12 20.csv,Schema_3
+data_sales\Aesthetic World\Aesthetic Extract 2024 01 11.csv,Schema_3
+data_sales\Aesthetic World\AestheticWorld_ALS_Extract_01012023_31032023.csv,Schema_4
+data_sales\Burke Orthodontics\Generic - Product Sales by Customer Monthly 2.csv,Schema_5
+data_sales\Burke Orthodontics\Generic - Product Sales by Customer Monthly Burke Ortho.csv,Schema_5
+data_sales\Burke Orthodontics\Generic - Product Sales by Customer Monthly joe.csv,Schema_5
+data_sales\Cardiff Orthodontics\Cardiff Ortho Extract 2023 12 20.csv,Schema_3
+data_sales\Cardiff Orthodontics\Cardiff Ortho Extract 2024 01 11.csv,Schema_3
+data_sales\Cardiff Orthodontics\CardiffOrtho_ALS_Extract_SQLDatabase_01012021_31032023.csv,Schema_3
+data_sales\Casterbridge\Casterbridge Extract 2023 12 20.csv,Schema_3
+data_sales\Casterbridge\Casterbridge Extract 2024 01 11.csv,Schema_3
+data_sales\Casterbridge\Casterbridge_ALS_Extract_01012021_31032023.csv,Schema_3
+data_sales\CBC Dental\Generic - Product Sales by Customer Monthly CBC 2.csv,Schema_5
+data_sales\CBC Dental\Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\CBC Dental\TOPUP - Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Central Dental Laboratory\CentralDental_ALS_Extract_01012021_31032023.csv,Schema_1
+data_sales\Central Dental Laboratory\converted_file_excel_to_csv\CentralDental Extract 2024 01 11.xlsx_Sheet1.csv,Schema_2
+data_sales\Dent8\NEW Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Dent8\TOPUP - Generic - Product Sales by Customer Monthlynovdec.csv,Schema_5
+data_sales\Dent8\converted_file_excel_to_csv\Generic - Product Sales by Customer Monthly Dent8.xlsx_in.csv,Schema_5
+data_sales\Dent8\converted_file_excel_to_csv\in.csv,Schema_5
+data_sales\Dental Excellence\DE 1.121-31.10.23  Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Dental Excellence\DE Jan24 to April24 Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Dental Excellence\TOPUP - DE 1.11.23 - 31.12.23  Product Sales by Customer Monthly.csv,Schema_5
+data_sales\European Dental Laboratory\Generic - Product Sales by Customer Monthly _European Dental.csv,Schema_5
+data_sales\European Dental Laboratory\NEW Generic - Product Sales by Customer Monthly ALS.csv,Schema_5
+data_sales\European Dental Laboratory\TOPUP - Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\George House\Generic - Product Sales by Customer Monthly (2) George House.csv,Schema_5
+data_sales\George House\NEW Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\George House\TOPUP - Generic - Product Sales by Customer.csv,Schema_6
+data_sales\Innovate\Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Innovate\NEW Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Innovate\TOPUP - Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\IW Dental\IW Generic - Product Sales by Customer IW Dental.csv,Schema_6
+data_sales\IW Dental\NEW Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\IW Dental\TOPUP - Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Leca\converted_file_excel_to_csv\Kenny 011123 to 311223.xlsx_SageReportData1.csv,Schema_7
+data_sales\Leca\converted_file_excel_to_csv\Leca 2021-2023.xlsx_Sheet1.csv,Schema_8
+data_sales\Leca\converted_file_excel_to_csv\Leca Sales Analysis 010124 to 300424 for Kenny.xlsx_Sheet1.csv,Schema_9
+data_sales\Lodge\Lodge_ALS_Extract_01012021_31032023.csv,Schema_1
+data_sales\Lodge\converted_file_excel_to_csv\Lodge Extract 2024 01 11.xlsx_Sheet2.csv,Schema_2
+data_sales\Oakview Restorations\Generic - Product Sales by Customer Monthly 011123 to 301123.csv,Schema_5
+data_sales\Oakview Restorations\NEW Generic - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Oakview Restorations\Oakview 010124 to 300424 - Product Sales by Customer Monthly.csv,Schema_5
+data_sales\Passion Dental Design\Generic - Product Sales by Customer Monthly Jan 21 to Oct 23.csv,Schema_10
+data_sales\Passion Dental Design\Generic - Product Sales by Customer Monthly Nov to Dec 23.csv,Schema_10
+data_sales\Passion Dental Design\Jan-April24Productsalescustomermonthly Passion.csv,Schema_5
+data_sales\Precedental\Precedental Extract 2024 01 11.csv,Schema_2
+data_sales\Precedental\Precedental_ALS_Extract_01012021_31032023.csv,Schema_1
+data_sales\Romak Denture Centre\Romak Extract 2024 01 11.csv,Schema_2
+data_sales\Romak Denture Centre\Romak_ALS_Extract_01012021_31032023.csv,Schema_1
+data_sales\Woodford\Woodford Extract 23 12 22.csv,Schema_3
+data_sales\Woodford\Woodford_ALS_Extract_01012021_31032023_v2.csv,Schema_3
+data_sales\Woodford\converted_file_excel_to_csv\Woodford Extract 2024 01 11.xlsx_Woodford_ALS_Export.csv,Schema_3
