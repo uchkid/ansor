@@ -1,6 +1,9 @@
 data
 data_sales
 data_utils
+pre_processed
+files
+error
 staticfiles
 .envs/*
 !.envs/.local/
