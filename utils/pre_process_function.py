@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 import uuid
+import os
+from pathlib import Path
+import dateutil.parser as dparser
+from tqdm import tqdm
 
 def preprocess (file_path,schema_type,als_lab):
     func = lookup_preprocess_function.get(schema_type)  # Get function from dictionary
@@ -16,7 +20,6 @@ def preprocess (file_path,schema_type,als_lab):
         return prep_df 
     else:
         print(f"No schema found for file {file_path}")          
-
 
 def preprocess_labtrac_new(raw_data: pd.DataFrame, als_lab: str) -> pd.DataFrame:
     """
@@ -590,7 +593,6 @@ def prep_transactor_passion_dental_design(raw_data: pd.DataFrame, als_lab: str):
 
     return prep_data
 
-
 lookup_preprocess_function  = {
         "Schema_1":preprocess_labtrac_new,
         "Schema_2":preprocess_labtrac_new,
@@ -605,3 +607,309 @@ lookup_preprocess_function  = {
         # "Schema_11":input_preprocess_evident,
         # "Schema_12":input_preprocess_labtrac_ashford,
 }
+
+def preprocess_labtrac_ashford():
+    """
+    Input and preprocess raw sales data from the Ashford lab, extracted from the Labtrac system.
+    :return prep_data: DataFrame containing pre-processed data for Ashford, from Labtrac.
+    """
+    ashford_2023 = pd.read_excel("data\sales_ashford\Ashford\Ashford 2023 Labtrac Data.xlsx")
+    ashford_2022 = pd.read_excel("data\sales_ashford\Ashford\Ashford 2022 Labtrac Data.xlsx")
+    ashford_2021 = pd.read_excel("data\sales_ashford\Ashford\Ashford 2021 Labtrac Data.xlsx")
+    try:
+        ashford_2023_Nov_Dec = pd.read_csv("data\sales_ashford\Ashford\Ashford 2023_Nov_Dec Labtrac Data.csv", encoding="utf-8") 
+    except:
+        ashford_2023_Nov_Dec = pd.read_csv("data\sales_ashford\Ashford\Ashford 2023_Nov_Dec Labtrac Data.csv", encoding="latin-1")
+    
+    ashford_2024_Jan_Apr = pd.read_excel("data\sales_ashford\Ashford\Ashford Data 2024_Jan_Apr Labtrac Data.xlsx")
+
+    def set_new_columns(df, new_columns):
+        """
+        For input df, takes column headers and inserts them into the dataframe as a new row, then replaces the old
+        column headers with new column headers of user's choosing.
+        """
+        print("Setting Columns")
+        df.loc[-1] = df.columns
+        df.index = df.index + 1
+        df = df.sort_index()
+        df.columns = new_columns
+
+        return df
+    
+    def add_dr_id_column(df: pd.DataFrame):
+        """
+        For input df (2021 and 2022 data), adds a new DR ID column to match 2023 data.
+        """
+        df["DR ID"] = "Unknown"
+        df_cols = df.columns.tolist()
+        df_cols = df_cols[-1:] + df_cols[:-1]
+        df = df[df_cols]
+        
+        return df
+
+    # Combine the separate yearly files together
+    new_columns = ashford_2023.columns
+    prep_data = ashford_2023.copy(deep=True)
+
+    prep_data["INVOICED DATE"] = prep_data["INVOICED DATE"].astype(str)
+    prep_data = prep_data.loc[~prep_data["INVOICED DATE"].str.contains("1899")]
+    prep_data["INVOICED DATE"] = prep_data["INVOICED DATE"].str.replace(".1", "")
+    # prep_data = prep_data.loc[~(prep_data["INVOICED DATE"] == ".1")]
+    prep_data["INVOICED DATE"] = pd.to_datetime(prep_data["INVOICED DATE"])
+
+    prep_data = prep_data.loc[prep_data["INVOICED DATE"] < "2023-11-1"]
+
+    ashford_2022 = add_dr_id_column(ashford_2022)
+    
+    for data in [ashford_2022, ashford_2021, ashford_2024_Jan_Apr]:
+        data = data.reset_index(drop=True)
+        data = set_new_columns(df=data, new_columns=new_columns)
+        print(prep_data.shape)
+        # data.to_csv(r"C:\Users\ZhiningLiu\OneDrive - Ansor\Desktop\data_0.csv")
+        prep_data = pd.concat([prep_data, data]).reset_index(drop=True)
+        print(prep_data.shape)
+    # prep_data.to_csv(r"C:\Users\ZhiningLiu\OneDrive - Ansor\Desktop\prep_data_0.csv")
+
+    ashford_2023_Nov_Dec = ashford_2023_Nov_Dec.reset_index(drop=True)
+    ashford_2023_Nov_Dec = set_new_columns(df=ashford_2023_Nov_Dec, new_columns=new_columns)
+    ashford_2023_Nov_Dec["INVOICED DATE"] = ashford_2023_Nov_Dec["INVOICED DATE"].str.rstrip(".1")
+    ashford_2023_Nov_Dec["INVOICED DATE"] = pd.to_datetime(
+        ashford_2023_Nov_Dec["INVOICED DATE"], format="%d/%m/%Y", dayfirst=True
+    )
+    ashford_2023_Nov_Dec = ashford_2023_Nov_Dec.loc[ashford_2023_Nov_Dec["INVOICED DATE"] > "2023-10-31"]
+    prep_data = pd.concat([prep_data, ashford_2023_Nov_Dec]).reset_index(drop=True)
+
+    # prep_data.to_csv(r"C:\Users\ZhiningLiu\OneDrive - Ansor\Desktop\prep_data-1.csv")
+
+    # Fill in null values in the product description column
+    prep_data["PRODUCT DESC"] = prep_data["PRODUCT DESC"].fillna(
+        "No product description"
+    )
+
+    # Set the column data types
+    prep_data["DR ID"] = prep_data["DR ID"].astype(str)
+    prep_data["DOCTOR NAME"] = prep_data["DOCTOR NAME"].astype(str)
+    prep_data["PRACTICE"] = prep_data["PRACTICE"].astype(str)
+    prep_data["CASE NUMBER"] = prep_data["CASE NUMBER"].astype(str)
+    prep_data["STATUS"] = prep_data["STATUS"].astype(str)
+    # prep_data["DATE IN"] = pd.to_datetime(
+    #     prep_data["DATE IN"], format="%d/%m/%Y"
+    # )
+    # prep_data["DUE DATE"] = pd.to_datetime(
+    #     prep_data["DUE DATE"], format="%d/%m/%Y"
+    # )
+    # prep_data.to_csv(r"C:\Users\ZhiningLiu\OneDrive - Ansor\Desktop\prep_data-2.csv")
+    prep_data["INVOICED DATE"] = prep_data["INVOICED DATE"].astype(str)
+    prep_data = prep_data.loc[~prep_data["INVOICED DATE"].str.contains("1899")]
+    prep_data["INVOICED DATE"] = prep_data["INVOICED DATE"].str.replace(".1", "")
+    # prep_data = prep_data.loc[~(prep_data["INVOICED DATE"] == ".1")]
+    prep_data["INVOICED DATE"] = pd.to_datetime(prep_data["INVOICED DATE"])
+    # prep_data["INVOICED DATE"] = prep_data["INVOICED DATE"].str.rstrip(".1")
+    # prep_data = prep_data.loc[~prep_data["INVOICED DATE"].str.contains("1899")]
+
+    # prep_data["INVOICED DATE"] = pd.to_datetime(
+    #     prep_data["INVOICED DATE"], format="%d/%m/%Y"
+    # )
+    prep_data["PRODUCT ID"] = prep_data["PRODUCT ID"].astype(str)
+    prep_data["PRODUCT DESC"] = prep_data["PRODUCT DESC"].astype(str)
+    prep_data["UNIT"] = prep_data["UNIT"].astype(int)
+    prep_data["PRICE"] = prep_data["PRICE"].astype(str)
+    prep_data["PRICE"] = prep_data["PRICE"].str.replace("£", "")
+    prep_data["PRICE"] = prep_data["PRICE"].str.replace("Â", "")
+    prep_data["PRICE"] = prep_data["PRICE"].str.replace(",", "")
+    prep_data["PRICE"] = prep_data["PRICE"].astype(float)
+
+    # Add unique row identifier
+    prep_data["order_uuid"] = prep_data.apply(lambda _: uuid.uuid4(), axis=1)
+    prep_data["order_uuid"] = prep_data["order_uuid"].astype(str)
+
+    # Remove any rows with dates prior to 2021
+    # prep_data = prep_data.loc[prep_data["INVOICED DATE"] > pd.Timestamp(2021, 1, 1)]
+
+    # Add ALS lab identifier and system source
+    prep_data["als_lab"] = "Ashford"
+    prep_data["system_source"] = "Labtrac"
+
+    # Remove any trailing spaces from the product codes
+    prep_data["PRODUCT ID"] = prep_data["PRODUCT ID"].str.strip()
+
+    # Rename and reorder columns
+    prep_data = prep_data.rename(
+        columns={
+            "DR ID": "customer_id",
+            "DOCTOR NAME": "customer_name",
+            "PRACTICE": "practice_name",
+            "CASE NUMBER": "order_id",
+            "STATUS": "order_status",
+            "DUE DATE": "order_due_date",
+            "DATE IN": "order_created_date",
+            "INVOICED DATE": "order_invoiced_date",
+            "PRODUCT ID": "product_code",
+            "PRODUCT DESC": "product_description",
+            "UNIT": "quantity",
+            "PRICE": "net_sales",
+        }
+    )
+    prep_data = prep_data[
+        [
+            "order_uuid",
+            "order_invoiced_date",
+            "system_source",
+            "als_lab",
+            "practice_name",
+            "customer_id",
+            "customer_name",
+            "product_code",
+            "product_description",
+            "quantity",
+            "net_sales",
+        ]
+    ]
+
+    # Find the unit net price for each order
+    prep_data["unit_net_price"] = prep_data["net_sales"] / prep_data["quantity"]
+
+    return prep_data
+
+def preprocess_evident_densign(als_lab: str) -> pd.DataFrame:
+    """
+    Input and preprocess raw data from a single lab from the Evident system.
+    :param als_lab: Str name of the ALS dental lab the data is from.
+    :return prep_data: DataFrame containing preprocessed data for a single lab from Evident.
+    """
+    # Find all filepaths of data files for the given lab using Evident
+    folder_path = "data\sales_densign\densign"
+    file_path_list = [
+        os.path.join(folder_path, file_path) for file_path in os.listdir(folder_path)
+    ]
+
+    # Download and clean and join the monthly reports together
+    df_list = []
+    for file_path in tqdm(file_path_list):
+        # Load in the data for the month
+        df = pd.read_excel(file_path)
+
+        # Extract the month that the data is from
+        date_str = df["Densign Lab"].values[1]
+        first_date = dparser.parse(date_str.split("-")[0], fuzzy=True)
+
+        # Remove extraneous rows at the top of the original Excel file and set the correct column headers
+        df = df.iloc[5:, :].reset_index(drop=True)
+        df.columns = df.iloc[0, :]
+        df = df.iloc[1:, :].reset_index(drop=True)
+
+        # Fill in the missing values in the first three columns, to convert from Excel template format to data table
+        if (
+            "Customer Code" in df.columns
+            and "Customer Name" not in df.columns
+            and "Group" not in df.columns
+        ):
+            df[["Customer Code", "Dentist Name", "Practice Name"]] = df[
+                ["Customer Code", "Dentist Name", "Practice Name"]
+            ].ffill(axis=0)
+        elif (
+            "Customer Name" in df.columns
+            and "Customer Code" not in df.columns
+            and "Group" not in df.columns
+        ):
+            df[["Customer Name", "Dentist Name", "Practice Name"]] = df[
+                ["Customer Name", "Dentist Name", "Practice Name"]
+            ].ffill(axis=0)
+            df = df.rename(columns={"Customer Name": "Customer Code"})
+        elif (
+            "Group" in df.columns
+            and "Customer Code" not in df.columns
+            and "Customer Name" not in df.columns
+        ):
+            df[["Group", "Dentist Name", "Practice Name"]] = df[
+                ["Group", "Dentist Name", "Practice Name"]
+            ].ffill(axis=0)
+            df = df.rename(columns={"Group": "Customer Code"})
+
+        df = df.dropna(axis=0, how="any", subset="Item")
+
+        # Add date column
+        df["year_month"] = first_date
+
+        # Drop the % columns
+        df = df.drop(
+            columns=[
+                "%",
+                "Alloy",
+                "COGS Alloy",
+                "Tax",
+            ]
+        )
+
+        # Ensure all rows are correctly ordered
+        df = df[
+            [
+                "Customer Code",
+                "Dentist Name",
+                "Practice Name",
+                "Item",
+                "Product Pieces",
+                "Remake Pieces",
+                "Revenue",
+                "Total",
+                "year_month",
+            ]
+        ]
+
+        # Add to the list of cleaned dfs, ready to be joined together after all monthly data files have been cleaned
+        df_list.append(df)
+
+    prep_data = pd.concat(df_list)
+
+    # Remove any trailing spaces from the product codes
+    prep_data["Item"] = prep_data["Item"].str.strip()
+
+    # Rename columns
+    prep_data = prep_data.rename(
+        columns={
+            "Customer Code": "customer_id",
+            "Dentist Name": "customer_name",
+            "Practice Name": "practice_name",
+            "Item": "product_description",
+            "Product Pieces": "quantity",
+            "Remake Pieces": "quantity_remake",
+            "Revenue": "net_sales",
+            "Total": "gross_sales",
+        }
+    )
+
+    # Add system source and ALS lab columns
+    prep_data["system_source"] = "Evident"
+    prep_data["als_lab"] = als_lab
+
+    # Add unique row identifier
+    prep_data["customer_product_cube_uuid"] = prep_data.apply(
+        lambda _: uuid.uuid4(), axis=1
+    )
+    prep_data["customer_product_cube_uuid"] = prep_data[
+        "customer_product_cube_uuid"
+    ].astype(str)
+
+    # Fill the product id column
+    prep_data["product_id"] = prep_data["product_description"]
+
+    # Reorder columns
+    prep_data = prep_data[
+        [
+            "customer_product_cube_uuid",
+            "year_month",
+            "system_source",
+            "als_lab",
+            "practice_name",
+            "customer_id",
+            "customer_name",
+            "product_id",
+            "product_description",
+            "quantity",
+            "quantity_remake",
+            "net_sales",
+            "gross_sales",
+        ]
+    ]
+
+    return prep_data

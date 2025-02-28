@@ -3,6 +3,7 @@ import pandas as pd
 from . import schema_utils
 import os
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 load_dotenv()
 folder_path = os.environ.get('RAW_FOLDER_PATH')
@@ -16,9 +17,9 @@ def is_file_in_subfolder(file_path, parent_folder):
     
     return parent_folder in file_path.parents  # Check if parent_folder is an ancestor
 
-def get_second_folder_name(file_path):
+def get_als_lab_folder_name(file_path):
     path_parts = Path(file_path).parts  # Get all parts of the file path
-    return path_parts[1] if len(path_parts) > 1 else None  # Return second folder if it exists
+    return path_parts[2] if len(path_parts) > 1 else None  # Return second folder if it exists
 
 def excel_sheets_to_csv(file: Path):
     excel_file = file
@@ -41,7 +42,7 @@ def get_excel_files():
     global folder_path
     folder_path = Path(folder_path)
 
-    for file in folder_path.rglob("*"):
+    for file in tqdm(folder_path.rglob("*")):
         if file.suffix.lower() in valid_extensions:  
             print(f"Converting excel file : {str(file)}")                      
             excel_sheets_to_csv(file)   
@@ -125,7 +126,7 @@ def get_csv_schema():
                 file_in_folder = is_file_in_subfolder(file, input_folder_path)
                 if file_in_folder:
                     break
-            als_lab = get_second_folder_name(file)
+            als_lab = get_als_lab_folder_name(file)
 
             if file_in_folder:
                 get_schema = get_schema_by_folder(input_folder_path)
