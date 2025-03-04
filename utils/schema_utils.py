@@ -1,17 +1,3 @@
-# lookup_preprocess_function  = {
-#         "Schema_1":preprocess_labtrac_new,
-#         "Schema_2":preprocess_labtrac_new,
-#         "Schema_3":"preprocess_labtrac_old",
-#         "Schema_4":"preprocess_labtrac_old",
-#         "Schema_5":"preprocess_transactor",
-#         "Schema_6":"preprocess_transactor",
-#         "Schema_7":"preprocess_leca",
-#         "Schema_8":"preprocess_leca",
-#         "Schema_9":"preprocess_leca",
-#         "Schema_10":"prep_transactor_passion_dental_design",
-#         "Schema_11":"input_preprocess_evident",
-#     }    
-
 def lookup_schema():
     dic = {
         "Schema_1": ['Order', 'Patient', 'Code', 'Name', 'Recieved', 'Date', 'Product Link', 'Description', 'Value', 'Category', 'Standard', 'Status', 'Qty', 'Delivery 1', 'Delivery 2', 'Delivery 3', 'Delivery 4', 'Delivery 5', 'Invoice 1', 'Invoice 2', 'Invoice 3', 'Invoice 4', 'Invoice 5'],
@@ -23,9 +9,9 @@ def lookup_schema():
         "Schema_7": ['Year', 'Month', 'Practice Post Code or Identifier', 'Practice', 'Invoice.AccountReference', 'Invoice.AccountName', 'InvoiceItem.ProductAccountReference', 'Product', 'NHS /Private/Independent/PPE', 'InvoiceItem.Quantity', 'InvoiceItem.AmountNet', 'InvoiceItem.AmountVAT'],
         "Schema_8": ['Year', 'Month', 'Practice Post Code or Identifier', 'Practice Name', 'Customer Account', 'Dentist', 'Product Code', 'Product Description', 'NHS /Private/Independent/PPE', 'Quantity', 'Invoice Amount', 'Invoice VAT'],
         "Schema_9": ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11'],
-        "Schema_10": ['Year', 'Month', 'shipid', 'shipfullname', 'custID', 'CustFullName', 'code', 'Description', 'Qty', 'Net_Sales', 'Tax_Sales'],
-        "Schema_11":"data_sales/densign",
-        "Schema_12":"data_sales/ashford"
+        "Schema_10":['Year', 'Month', 'shipid', 'shipfullname', 'custID', 'CustFullName', 'code', 'Description', 'Qty', 'Net_Sales', 'Tax_Sales'],
+        "Schema_11":['YEAR', 'MONTH', 'CLIENT', 'PRAC', 'ACCT', 'ITEM', 'SKU', 'CAT', 'SUBCAT', 'MAT', 'STAN', 'PRODUCT COUNT', 'REVENUE', 'TAX', 'TOTAL'],
+        "Schema_12": ['Year', 'Month', 'Practice', 'InvoiceItem.Description', 'Invoice.Number', 'Invoice.Date', 'Invoice.AccountReference', 'Invoice.AccountName', 'InvoiceItem.ProductAccountReference2', 'Product', 'InvoiceItem.Quantity', 'InvoiceItem.AmountNet', 'InvoiceItem.AmountNetValueDiscountProportion', 'InvoiceItem.AmountVAT'],
     }
     return dic
 

@@ -1,12 +1,14 @@
 from pathlib import Path
 import pandas as pd
-from . import schema_utils
+from . import schema_utils, mysettings
 import os
-from dotenv import load_dotenv
 from tqdm import tqdm
+from openpyxl import load_workbook
 
-load_dotenv()
-folder_path = os.environ.get('RAW_FOLDER_PATH')
+# load_dotenv()
+# folder_path = os.environ.get('RAW_FOLDER_PATH')
+folder_path = mysettings.RAW_FOLDER_PATH
+print(folder_path)
 
 sub_folder = "converted_file_excel_to_csv"
 error_list = []
@@ -29,10 +31,15 @@ def excel_sheets_to_csv(file: Path):
     
     try:
         xls = pd.ExcelFile(excel_file)
+        wb = load_workbook(excel_file, data_only=True)
+
         for sheet_name in xls.sheet_names:
-            df = pd.read_excel(excel_file, sheet_name=sheet_name)
-            csv_file = f"{output_folder}/{excel_file.name}_{sheet_name}.csv"            
-            df.to_csv(csv_file, index=False) 
+            sheet = wb[sheet_name]
+
+            if sheet.sheet_state == "visible":
+                df = pd.read_excel(excel_file, sheet_name=sheet_name)
+                csv_file = f"{output_folder}/{excel_file.name}_{sheet_name}.csv"            
+                df.to_csv(csv_file, index=False) 
     except:       
         error_list.append(excel_file)
 
@@ -48,7 +55,13 @@ def get_excel_files():
             excel_sheets_to_csv(file)   
 
     if len(error_list) > 0:
-        with open("error/error_excel_sheets_to_csv.txt", "w") as f:
+        last_folder = os.path.basename(folder_path)
+        output_folder = Path(f"files/{last_folder}")
+        # Create the output folder if it doesn't exist
+        output_folder.mkdir(parents=True, exist_ok=True) 
+        error_output_file_convert_excel_to_csv = f"{output_folder}/error_convert_excel_sheets_to_csv.txt"       
+
+        with open(error_output_file_convert_excel_to_csv, "w") as f:
             for item in error_list:
                 f.write(str(item) + "\n")   
 
@@ -87,6 +100,10 @@ def add_header_to_dict(new_list):
     global schema_key
 
     for existing_key, existing_value in schema.items():
+        if sorted(existing_value) == sorted(new_list):            
+            return existing_key
+    
+    for existing_key, existing_value in schema_new.items():
         if sorted(existing_value) == sorted(new_list):            
             return existing_key
 
@@ -154,21 +171,43 @@ def get_csv_schema():
     result['system_source'] = system_source
 
     if len(files_with_duplicate_columns) > 0:
-        with open("error/error_csv_with_duplicate_columns.txt", "w") as f:
+        last_folder = os.path.basename(folder_path)
+        output_folder = Path(f"files/{last_folder}")
+        # Create the output folder if it doesn't exist
+        output_folder.mkdir(parents=True, exist_ok=True) 
+        error_output_file_csv_with_duplicate_columns = f"{output_folder}/error_csv_with_duplicate_columns.txt"  
+        
+        with open(error_output_file_csv_with_duplicate_columns, "w") as f:
             for item in files_with_duplicate_columns:
                 f.write(str(item) + "\n")   
 
     if len(input_folder_paths_error_files) > 0:
-         with open("error/error_csv_from_input_folder.txt", "w") as f:
+        last_folder = os.path.basename(folder_path)
+        output_folder = Path(f"files/{last_folder}")
+        # Create the output folder if it doesn't exist
+        output_folder.mkdir(parents=True, exist_ok=True) 
+        error_output_file_csv_from_input_folder = f"{output_folder}/error_csv_from_input_folder.txt" 
+
+        with open(error_output_file_csv_from_input_folder, "w") as f:
             for item in files_with_duplicate_columns:
                 f.write(str(item) + "\n") 
 
     df = pd.DataFrame(result)
-    file_with_schema_filename = os.environ.get('FILE_WITH_SCHEMA')
+
+    last_folder = os.path.basename(folder_path)    
+    output_folder = Path(f"files/{last_folder}")
+    # Create the output folder if it doesn't exist
+    output_folder.mkdir(parents=True, exist_ok=True) 
+    file_with_schema_filename = f"{output_folder}/file_with_schema.csv"
     df.to_csv(file_with_schema_filename, index=False) 
 
     if len(schema_new) > 0:
-        with open("files/schema.txt", "w") as file:
+        last_folder = os.path.basename(folder_path)
+        output_folder = Path(f"files/{last_folder}")
+        # Create the output folder if it doesn't exist
+        output_folder.mkdir(parents=True, exist_ok=True) 
+        output_file_new_schema = f"{output_folder}/schema.txt" 
+        with open(output_file_new_schema, "w") as file:
             for key, value in schema_new.items():
                 file.write(f"{key}: {value}\n")
 

@@ -17,7 +17,8 @@ def preprocess (file_path,schema_type,als_lab):
             df = pd.read_csv(file_path, low_memory=False, encoding="latin-1")  # Use Latin-1 as fallback
 
         prep_df = func(df, als_lab) 
-        return prep_df 
+        func_name = func.__name__
+        return prep_df, func_name
     else:
         print(f"No schema found for file {file_path}")          
 
@@ -87,7 +88,10 @@ def preprocess_labtrac_new(raw_data: pd.DataFrame, als_lab: str) -> pd.DataFrame
     # Set order invoiced date to datetime format
     if als_lab == "Romak Denture Centre":
         prep_data = prep_data.loc[prep_data["order_invoiced_date"] != "00/01/1900", :].reset_index(drop=True)
-        prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"], format="%d/%m/%Y")
+        try:
+            prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"])
+        except:
+            prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"], format="%d/%m/%Y")
     elif als_lab == "APlus":
         prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"])
     elif als_lab == "Central Dental Laboratory":
@@ -97,6 +101,8 @@ def preprocess_labtrac_new(raw_data: pd.DataFrame, als_lab: str) -> pd.DataFrame
     elif als_lab == "Lodge":
         prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"])
     elif als_lab == "Precedental":
+        prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"])
+    else:
         prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"])
 
     # Drop the product_category column if it is empty
@@ -220,6 +226,7 @@ def preprocess_labtrac_old(raw_data: pd.DataFrame, als_lab: str) -> pd.DataFrame
     # prep_data = prep_data.loc[prep_data["Net"] != 0, :]
 
     # Remove any trailing spaces from the product codes
+    prep_data["ProductId"] = prep_data["ProductId"].astype(str)
     prep_data["ProductId"] = prep_data["ProductId"].str.strip()
 
     # Rename columns
@@ -242,8 +249,13 @@ def preprocess_labtrac_old(raw_data: pd.DataFrame, als_lab: str) -> pd.DataFrame
         }
     )
 
-    # Set order invoiced date to datetime format
-    prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"])
+    try:
+        # Set order invoiced date to datetime format
+        prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"])
+    except:
+        prep_data["order_invoiced_date"] = pd.to_datetime(prep_data["order_invoiced_date"], format="%d/%m/%Y")
+        
+
 
     # Add system source and ALS lab columns
     prep_data["system_source"] = "Labtrac"
@@ -593,6 +605,176 @@ def prep_transactor_passion_dental_design(raw_data: pd.DataFrame, als_lab: str):
 
     return prep_data
 
+def preprocess_leca_greatlab(raw_data: pd.DataFrame, als_lab: str) -> pd.DataFrame:
+    """
+
+    :param raw_data:
+    :param als_lab:
+    :return:
+    """
+    prep_data = raw_data.copy(deep=True)
+
+    # Replace unnamed columns with first row of data table if relevant
+    if "Unnamed: 0" in prep_data.columns:
+        prep_data.columns = prep_data.iloc[0]
+        prep_data = prep_data.iloc[1:].reset_index(drop=True)
+
+    prep_data.columns = [
+        "Year",
+        "Month",
+        "Client",
+        "Prac",
+        "Acct",
+        "Item",
+        "SKU",
+        "CAT",
+        "SubCat",
+        "Mat",
+        "Stan",
+        "Product count",
+        "Revenue",
+        "Tax",
+        "Total"
+    ]
+
+    # Rename columns
+    prep_data = prep_data.rename(
+        columns={            
+            "Prac": "practice_name",
+            "Acct": "customer_id",
+            "Client": "customer_name",
+            "SKU": "product_code",
+            "Item": "product_description",            
+            "Product count": "quantity",
+            "Revenue":"net_sales"
+        }
+    )
+
+    # Add unique row identifier
+    prep_data["customer_product_cube_uuid"] = prep_data.apply(
+        lambda _: uuid.uuid4(), axis=1
+    )
+    prep_data["customer_product_cube_uuid"] = prep_data[
+        "customer_product_cube_uuid"
+    ].astype(str)
+
+    # Combine year and month into single datetime column
+    prep_data["year_month"] = pd.to_datetime(prep_data[["Year", "Month"]].assign(DAY=1))
+
+    # Add labels for raw data system source and dental lab source
+    prep_data["system_source"] = "Great Lab"
+    prep_data["als_lab"] = als_lab
+    
+    prep_data["nhs_or_private"] = ""
+    prep_data["practice_code"] = ""
+
+    # Drop extraneous columns and reorder columns
+    prep_data = prep_data[
+        [
+            "customer_product_cube_uuid",
+            "year_month",
+            "system_source",
+            "als_lab",
+            "practice_code",
+            "practice_name",
+            "customer_id",
+            "customer_name",
+            "product_code",
+            "product_description",
+            "quantity",
+            "net_sales",
+            "nhs_or_private"
+        ]
+    ]
+
+    # Add columns for the net unit price
+    prep_data["net_unit_price"] = prep_data["net_sales"] / prep_data["quantity"]
+
+    return prep_data
+
+def preprocess_leca_transactor(raw_data: pd.DataFrame, als_lab: str) -> pd.DataFrame:
+    """
+
+    :param raw_data:
+    :param als_lab:
+    :return:
+    """
+    prep_data = raw_data.copy(deep=True)
+
+    # prep_data.columns = [
+    #     "Practice",
+    #     "Invoice.Date",
+    #     "Invoice.AccountName",
+    #     "Prac",
+    #     "Acct",
+    #     "Item",
+    #     "SKU",
+    #     "CAT",
+    #     "SubCat",
+    #     "Mat",
+    #     "Stan",
+    #     "Product count",
+    #     "Revenue",
+    #     "Tax",
+    #     "Total"
+    # ]
+
+    # Rename columns
+    prep_data = prep_data.rename(
+        columns={            
+            "Practice": "practice_name",
+            "Invoice.AccountReference": "customer_id",
+            "Invoice.AccountName": "customer_name",
+            "InvoiceItem.ProductAccountReference2": "product_code",
+            "Product": "product_description",            
+            "InvoiceItem.Quantity": "quantity",
+            "InvoiceItem.AmountNet":"net_sales"
+        }
+    )
+
+    # Add unique row identifier
+    prep_data["customer_product_cube_uuid"] = prep_data.apply(
+        lambda _: uuid.uuid4(), axis=1
+    )
+    prep_data["customer_product_cube_uuid"] = prep_data[
+        "customer_product_cube_uuid"
+    ].astype(str)
+
+    # Combine year and month into single datetime column
+    prep_data["year_month"] = pd.to_datetime(prep_data["Invoice.Date"])
+    
+    # Add labels for raw data system source and dental lab source
+    prep_data["system_source"] = "Leca"
+    prep_data["als_lab"] = als_lab
+    
+
+    prep_data["nhs_or_private"] = ""
+    prep_data["practice_code"] = ""
+
+    # Drop extraneous columns and reorder columns
+    prep_data = prep_data[
+        [
+            "customer_product_cube_uuid",
+            "year_month",
+            "system_source",
+            "als_lab",
+            "practice_code",
+            "practice_name",
+            "customer_id",
+            "customer_name",
+            "product_code",
+            "product_description",
+            "quantity",
+            "net_sales",
+            "nhs_or_private"
+        ]
+    ]
+
+    # Add columns for the net unit price
+    prep_data["net_unit_price"] = prep_data["net_sales"] / prep_data["quantity"]
+
+    return prep_data
+
 lookup_preprocess_function  = {
         "Schema_1":preprocess_labtrac_new,
         "Schema_2":preprocess_labtrac_new,
@@ -604,8 +786,8 @@ lookup_preprocess_function  = {
         "Schema_8":preprocess_leca,
         "Schema_9":preprocess_leca,
         "Schema_10":prep_transactor_passion_dental_design,
-        # "Schema_11":input_preprocess_evident,
-        # "Schema_12":input_preprocess_labtrac_ashford,
+        "Schema_11":preprocess_leca_greatlab,
+        "Schema_12":preprocess_leca_transactor,
 }
 
 def preprocess_labtrac_ashford():
