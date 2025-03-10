@@ -5,3 +5,4 @@ tqdm
 xlrd
 selenium
 BeautifulSoup4
+lxml
