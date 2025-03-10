@@ -1075,6 +1075,15 @@ def preprocess_evident_densign(als_lab: str) -> pd.DataFrame:
     # Fill the product id column
     prep_data["product_id"] = prep_data["product_description"]
 
+    # Mark all rows as NHS as current ALS Evident labs only deal with NHS orders
+    prep_data["nhs_or_private"] = "NHS"
+
+    # Identify sales to ALS labs, specifically Densign and Veus, and mark as ALS lab sales
+    prep_data.loc[
+    prep_data["practice_name"].str.contains("Densign|DenSign|densign|Veus|veus"),
+        "nhs_or_private",
+    ] = "ALS Lab"
+
     # Reorder columns
     prep_data = prep_data[
         [
@@ -1091,6 +1100,7 @@ def preprocess_evident_densign(als_lab: str) -> pd.DataFrame:
             "quantity_remake",
             "net_sales",
             "gross_sales",
+            "nhs_or_private",
         ]
     ]
 

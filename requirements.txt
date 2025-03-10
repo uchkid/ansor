@@ -2,3 +2,6 @@ python-dotenv
 pandas
 openpyxl
 tqdm
+xlrd
+selenium
+BeautifulSoup4
